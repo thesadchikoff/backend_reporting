@@ -1,20 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Res,
+  Req, UseGuards
+} from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
+import {CreateReportDto} from "./dto/create-report.dto";
+import {Response} from "express";
+import {JwtAuthGuard} from "../guards/jwt.guard";
+import {User} from "@prisma/client";
+import {AuthGuard} from "@nestjs/passport";
 
+type RequestWithUser = Request & { user: User };
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  @Post()
-  create(@Body() createReportDto: CreateReportDto) {
-    return this.reportsService.create(createReportDto);
+  @Post('upload')
+  @UseGuards(JwtAuthGuard)
+  uploadReport(@Body() dto: CreateReportDto, @Res({passthrough: true}) res: Response, @Req() req: RequestWithUser) {
+    return this.reportsService.create(dto, res, req.user)
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.reportsService.findAll();
+  findAll(@Req() req) {
+    return this.reportsService.findAll(req);
   }
 
   @Get(':id')
@@ -27,8 +44,9 @@ export class ReportsController {
     return this.reportsService.update(+id, updateReportDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reportsService.remove(+id);
+  async remove(@Param('id') id: string, @Res() res: Response, @Req() req: RequestWithUser) {
+    return this.reportsService.remove(id, res, req.user);
   }
 }
