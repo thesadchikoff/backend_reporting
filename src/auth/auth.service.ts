@@ -7,6 +7,7 @@ import {jwtConstants} from "./constants";
 import * as bc from 'bcrypt'
 import {User} from "@prisma/client";
 import {Response} from "express";
+import {CreateUserDto} from "../user/dto/create-user.dto";
 
 @Injectable()
 export class AuthService {
@@ -60,6 +61,9 @@ export class AuthService {
         }
     }
 
+    async signUp(dto: AuthUserDto) {
+
+    }
     async logout(res: Response) {
         res.clearCookie('accessToken')
         return true
